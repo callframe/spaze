@@ -1,4 +1,6 @@
 .SILENT:
+.DEFAULT_GOAL := all
+
 WORK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 PRINT ?= printf
@@ -21,6 +23,9 @@ OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
 
 SPAZE := $(WORK_DIR)/spaze
+
+.PHONY: all
+all: $(SPAZE)
 
 $(SPAZE): $(OBJECTS)
 	$(PRINT) " LD $(notdir $@)\n"
