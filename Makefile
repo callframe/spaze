@@ -4,6 +4,7 @@
 WORK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 DEPS_DIR := $(WORK_DIR)/deps
 INCLUDE_DIR := $(WORK_DIR)/include
+SRC_DIR := $(WORK_DIR)/src
 
 DEPS_MK := $(DEPS_DIR)/deps.mk
 include $(DEPS_MK)
@@ -26,11 +27,11 @@ else
 endif
 
 SOURCES := \
-	$(WORK_DIR)/spaze.c \
-	$(WORK_DIR)/common.c \
-	$(WORK_DIR)/array.c \
-	$(WORK_DIR)/windowing.c \
-	$(WORK_DIR)/xdg-shell.c
+	$(SRC_DIR)/spaze.c \
+	$(SRC_DIR)/common.c \
+	$(SRC_DIR)/array.c \
+	$(SRC_DIR)/windowing.c \
+	$(SRC_DIR)/xdg-shell.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
