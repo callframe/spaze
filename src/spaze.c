@@ -2,6 +2,7 @@
 #include "spaze/gfx.h"
 #include "spaze/windowing.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <wayland-client.h>
 
@@ -22,20 +23,20 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
   }
 }
 
-static void render_frame(void) {}
+static void render_frame(void) { fprintf(stderr, "Rendering frame...\n"); }
 
 int main() {
+  struct gfx_s gfx;
+  enum gfx_error_e gfx_err = gfx_init(&gfx);
+  if (gfx_err != gfx_error_ok)
+    panic("failed to create gfx with: %d", gfx_err);
+
   struct event_loop_s evl;
   enum event_loop_error_e err = event_loop_init(&evl);
   if (err != event_loop_error_ok) {
     panic("failed to create eventloop with: %d", err);
     return EXIT_FAILURE;
   }
-
-  struct gfx_s gfx;
-  enum gfx_error_e gfx_err = gfx_init(&gfx);
-  if (gfx_err != gfx_error_ok)
-    panic("failed to create gfx with: %d", gfx_err);
 
   struct window_s window;
   enum window_error_e win_err = window_init(&window, &evl);
@@ -50,6 +51,6 @@ int main() {
   }
 
   window_deinit(&window);
-  gfx_deinit(&gfx);
   event_loop_deinit(&evl);
+  gfx_deinit(&gfx);
 }
