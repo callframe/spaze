@@ -52,7 +52,7 @@ SPAZE_CC_FLAGS := \
 	-I$(WGPU_INCLUDE_DIR) \
 	-I$(WGPU_WEBGPU_INCLUDE_DIR)
 
-SPAZE_LD_FLAGS := -lwayland-client -lvulkan
+SPAZE_LD_FLAGS := -lwayland-client -lm -lvulkan
 
 .PHONY: all
 all: $(SPAZE)
