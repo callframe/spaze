@@ -2,7 +2,6 @@
 #include "spaze/gfx.h"
 #include "spaze/windowing.h"
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <wayland-client.h>
 
