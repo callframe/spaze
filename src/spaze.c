@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define KiB(n) ((n) * 1024)
+#define MiB(n) (KiB(n) * 1024)
+#define SHM_POOL_SIZE (MiB(20))
+
 static void handle_events(struct event_loop_s *loop, bool *should_quit) {
   struct event_s event;
   while (event_loop_get(loop, &event)) {
@@ -29,7 +33,7 @@ int main() {
 
   struct shared_pool_s pool;
   enum shared_pool_error_e pool_err =
-      shared_pool_init(&pool, evl.shm, 1024 * 1024 * 10);
+      shared_pool_init(&pool, evl.shm, SHM_POOL_SIZE);
   if (pool_err != shared_pool_error_ok)
     panic("failed to create shared pool with: %d", pool_err);
 
