@@ -17,6 +17,7 @@ struct event_loop_s {
   struct wl_display *display;
   struct wl_compositor *compositor;
   struct xdg_wm_base *wm_base;
+  bool alive;
 };
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop);
@@ -34,8 +35,10 @@ struct window_s {
   struct wl_surface *surface;
   struct xdg_surface *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
+  struct event_loop_s *loop;
+  bool alive;
 };
 
 enum window_error_e window_init(struct window_s *window,
                                 struct event_loop_s *loop);
-enum window_error_e window_deinit(struct window_s *window);
+void window_deinit(struct window_s *window);

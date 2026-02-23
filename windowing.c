@@ -7,6 +7,7 @@
 #include <sys/poll.h>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
+#include <wayland-util.h>
 
 #define WL_VERSION 1
 
@@ -59,10 +60,11 @@ enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
     wl_display_disconnect(display);
     return event_loop_error_registry_get_failed;
   }
-
   wl_registry_add_listener(registry, &registry_listener, loop);
 
   loop->display = display;
+  loop->alive = true;
+
   wl_display_roundtrip(display);
 
   return event_loop_error_ok;
@@ -104,11 +106,15 @@ void event_loop_deinit(struct event_loop_s *loop) {
   assert_notnull(loop);
   array_deinit(&loop->events);
 
-  if (loop->display != NULL)
-    wl_display_disconnect(loop->display);
+  if (!loop->alive)
+    return;
 
-  loop->compositor = NULL;
+  wl_display_disconnect(loop->display);
+
   loop->display = NULL;
+  loop->compositor = NULL;
+  loop->wm_base = NULL;
+  loop->alive = false;
 }
 
 enum window_error_e window_init(struct window_s *window,
@@ -117,64 +123,50 @@ enum window_error_e window_init(struct window_s *window,
   assert_notnull(loop);
   memset(window, 0, sizeof(*window));
 
-  enum window_error_e err = window_error_ok;
   struct wl_surface *surface = NULL;
   struct xdg_surface *xdg_surface = NULL;
   struct xdg_toplevel *xdg_toplevel = NULL;
 
   surface = wl_compositor_create_surface(loop->compositor);
-  if (surface == NULL) {
-    err = window_error_wl_surface_create_failed;
-    goto fail;
-  }
+  if (surface == NULL)
+    return window_error_wl_surface_create_failed;
 
   xdg_surface = xdg_wm_base_get_xdg_surface(loop->wm_base, surface);
   if (xdg_surface == NULL) {
-    err = window_error_xdg_surface_create_failed;
-    goto fail;
+    wl_surface_destroy(surface);
+    return window_error_xdg_surface_create_failed;
   }
 
   xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
   if (xdg_toplevel == NULL) {
-    err = window_error_xdg_toplevel_create_failed;
-    goto fail;
+    xdg_surface_destroy(xdg_surface);
+    wl_surface_destroy(surface);
+    return window_error_xdg_toplevel_create_failed;
   }
 
-  goto ok;
-
-fail:
-  if (surface != NULL)
-    wl_surface_destroy(surface);
-
-  if (xdg_surface != NULL)
-    xdg_surface_destroy(xdg_surface);
-
-  if (xdg_toplevel != NULL)
-    xdg_toplevel_destroy(xdg_toplevel);
-
-ok:
   window->surface = surface;
   window->xdg_surface = xdg_surface;
   window->xdg_toplevel = xdg_toplevel;
-
-  return err;
-}
-
-enum window_error_e window_deinit(struct window_s *window) {
-  assert_notnull(window);
-
-  if (window->xdg_toplevel != NULL)
-    xdg_toplevel_destroy(window->xdg_toplevel);
-
-  if (window->xdg_surface != NULL)
-    xdg_surface_destroy(window->xdg_surface);
-
-  if (window->surface != NULL)
-    wl_surface_destroy(window->surface);
-
-  window->xdg_toplevel = NULL;
-  window->xdg_surface = NULL;
-  window->surface = NULL;
+  window->loop = loop;
+  window->alive = true;
 
   return window_error_ok;
+}
+
+void window_deinit(struct window_s *window) {
+  assert_notnull(window);
+
+  if (!window->alive)
+    return;
+
+  wl_surface_destroy(window->surface);
+  xdg_surface_destroy(window->xdg_surface);
+  xdg_toplevel_destroy(window->xdg_toplevel);
+
+  window->surface = NULL;
+  window->xdg_surface = NULL;
+  window->xdg_toplevel = NULL;
+  window->alive = false;
+
+  return;
 }
