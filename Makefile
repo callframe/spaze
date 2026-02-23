@@ -33,7 +33,8 @@ SOURCES := \
 	$(SRC_DIR)/array.c \
 	$(SRC_DIR)/windowing.c \
 	$(SRC_DIR)/xdg-shell.c \
-	$(SRC_DIR)/gfx.c
+	$(SRC_DIR)/gfx.c \
+	$(SRC_DIR)/list.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)

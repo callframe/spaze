@@ -75,20 +75,34 @@ static inline void *shared_pool_offset(struct shared_pool_s *pool,
   return (char *)pool->pool_data + offset;
 }
 
-void *shared_pool_allocate(struct shared_pool_s *pool, usize_t size,
-                           usize_t *offset) {
+static struct wl_buffer *shared_pool_allocate_soft(struct shared_pool_s *pool,
+                                                   usize_t size,
+                                                   usize_t *offset) {
+  assert_notnull(pool);
+  assert_notnull(offset);
+
+  list_iter_forward(&pool->frees, link) {
+    struct shared_buffer_s *free = shared_buffer_get(link);
+    assert_notnull(free);
+
+    
+  }
+}
+
+struct wl_buffer *shared_pool_allocate(struct shared_pool_s *pool, usize_t size,
+                                       usize_t *offset) {
   assert_notnull(pool);
   assert_notnull(offset);
 
   if (!shared_pool_can_allocate(pool, size))
     return NULL;
+  /*
+    usize_t curr_used = pool->used;
+    void *ptr = shared_pool_offset(pool, curr_used);
+    pool->used += size;
 
-  usize_t curr_used = pool->used;
-  void *ptr = shared_pool_offset(pool, curr_used);
-  pool->used += size;
-
-  *offset = curr_used;
-  return ptr;
+    *offset = curr_used;
+    return ptr; */
 }
 
 void shared_pool_deinit(struct shared_pool_s *pool) {

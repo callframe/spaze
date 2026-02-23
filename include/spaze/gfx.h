@@ -1,5 +1,6 @@
 #pragma once
 
+#include "spaze/array.h"
 #include "spaze/common.h"
 #include "spaze/list.h"
 #include <limits.h>
@@ -29,18 +30,23 @@ enum shared_pool_error_e {
   shared_pool_error_shm_failed,
 };
 
+struct shared_buffer_s {
+  struct link_s link;
+  usize_t offset, size;
+};
+
+#define shared_buffer_get(link) container_of(struct shared_buffer_s, link, link)
+
 struct shared_pool_s {
   struct wl_shm_pool *pool;
   void *pool_data;
-  struct link_s link;
   usize_t used, capacity;
+  struct list_s frees;
   bool alive;
 };
 
-#define shared_pool_get(link) container_of(struct shared_pool_s, link, link)
-
 enum shared_pool_error_e shared_pool_init(struct shared_pool_s *pool,
                                           struct wl_shm *shm, usize_t size);
-void *shared_pool_allocate(struct shared_pool_s *pool, usize_t size,
-                           usize_t *offset);
+struct wl_buffer *shared_pool_allocate(struct shared_pool_s *pool, usize_t size,
+                                       usize_t *offset);
 void shared_pool_deinit(struct shared_pool_s *pool);
