@@ -1,6 +1,7 @@
 #include "spaze/windowing.h"
 #include "spaze/array.h"
 #include "spaze/common.h"
+#include "spaze/xdg-shell.h"
 #include <poll.h>
 #include <stdbool.h>
 #include <string.h>
@@ -10,6 +11,16 @@
 #include <wayland-util.h>
 
 #define WL_VERSION 1
+
+static void wm_base_ping(void *data, struct xdg_wm_base *xdg_wm_base,
+                         uint32_t serial) {
+  (void)data;
+  xdg_wm_base_pong(xdg_wm_base, serial);
+}
+
+static struct xdg_wm_base_listener wm_base_listener = {
+    .ping = wm_base_ping,
+};
 
 static void registry_global(void *data, struct wl_registry *registry,
                             uint32_t name, const char *interface,
@@ -22,17 +33,18 @@ static void registry_global(void *data, struct wl_registry *registry,
   if (!strcmp(interface, wl_compositor_interface.name)) {
     struct wl_compositor *compositor =
         wl_registry_bind(registry, name, &wl_compositor_interface, WL_VERSION);
-
     assert_notnull(compositor);
+
     loop->compositor = compositor;
   }
 
   if (!strcmp(interface, xdg_wm_base_interface.name)) {
     struct xdg_wm_base *wm_base =
         wl_registry_bind(registry, name, &xdg_wm_base_interface, WL_VERSION);
-
     assert_notnull(wm_base);
+
     loop->wm_base = wm_base;
+    xdg_wm_base_add_listener(loop->wm_base, &wm_base_listener, loop);
   }
 }
 
@@ -45,6 +57,11 @@ static void registry_global_remove(void *data, struct wl_registry *registry,
 
 static struct wl_registry_listener registry_listener = {
     .global = registry_global, .global_remove = registry_global_remove};
+
+static struct xdg_toplevel_listener toplevel_listener = {
+    .configure = NULL,
+    .close = NULL,
+};
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
   assert_notnull(loop);
@@ -149,6 +166,7 @@ enum window_error_e window_init(struct window_s *window,
   window->xdg_toplevel = xdg_toplevel;
   window->loop = loop;
   window->alive = true;
+  xdg_toplevel_add_listener(window->xdg_toplevel, &toplevel_listener, window);
 
   return window_error_ok;
 }
