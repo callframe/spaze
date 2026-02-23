@@ -1,19 +1,26 @@
 #pragma once
 
-#include "spaze/windowing.h"
+#include "spaze/common.h"
+#include "spaze/list.h"
+#include <stdbool.h>
 #include <wayland-client-protocol.h>
 
-#define N_BUFFERS 2
-
-enum gfx_error_e {
-  gfx_error_ok,
-  gfx_error_buffer_create_failed,
+enum shared_pool_error_e {
+  shared_pool_error_ok,
+  shared_pool_error_memory_failed,
+  shared_pool_error_shm_failed,
 };
 
-struct gfx_s {
-  struct wl_buffer *buffers[N_BUFFERS];
-  struct window_s *window;
+struct shared_pool_s {
+  struct wl_shm_pool *pool;
+  void *pool_data;
+  struct link_s link;
+  usize_t used, capacity;
+  bool alive;
 };
 
-enum gfx_error_e gfx_init(struct gfx_s *gfx, struct window_s *window);
-void gfx_deinit(struct gfx_s *gfx);
+#define shared_pool_get(link) container_of(struct shared_pool, link, link)
+
+enum shared_pool_error_e shared_pool_init(struct shared_pool_s *pool,
+                                          struct wl_shm *shm, usize_t size);
+void shared_pool_deinit(struct shared_pool_s *pool);

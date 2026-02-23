@@ -1,4 +1,5 @@
 #include "spaze/common.h"
+#include "spaze/gfx.h"
 #include "spaze/windowing.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,13 +27,18 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  struct shared_pool_s pool;
+  enum shared_pool_error_e pool_err =
+      shared_pool_init(&pool, evl.shm, 1024 * 1024 * 10);
+  if (pool_err != shared_pool_error_ok)
+    panic("failed to create shared pool with: %d", pool_err);
+
   struct window_s window;
   enum window_error_e win_err = window_init(&window, &evl);
   if (win_err != window_error_ok)
     panic("failed to create window with: %d", win_err);
 
   bool should_quit = false;
-
   while (!should_quit) {
     event_loop_update(&evl);
     handle_events(&evl, &should_quit);
@@ -40,5 +46,6 @@ int main() {
   }
 
   window_deinit(&window);
+  shared_pool_deinit(&pool);
   event_loop_deinit(&evl);
 }

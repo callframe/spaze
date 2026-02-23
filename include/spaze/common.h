@@ -25,3 +25,6 @@ _Noreturn void panic_impl(const char *file, int line, const char *func,
   } while (0)
 
 #define assert_notnull(ptr) assert((ptr) != NULL)
+
+#define container_of(type, member, link)                                       \
+  ((type *)((char *)(link) - offsetof(type, member)))

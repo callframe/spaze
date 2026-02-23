@@ -18,7 +18,8 @@ CC ?= clang
 CC_FLAGS := \
 	-std=c17 \
 	-Wall -Wextra -Werror \
-	-MMD -MP -fPIC
+	-MMD -MP -fPIC \
+	-D_DEFAULT_SOURCE
 
 ifeq ($(RELEASE), 1)
 	CC_FLAGS += -O3
@@ -31,7 +32,8 @@ SOURCES := \
 	$(SRC_DIR)/common.c \
 	$(SRC_DIR)/array.c \
 	$(SRC_DIR)/windowing.c \
-	$(SRC_DIR)/xdg-shell.c
+	$(SRC_DIR)/xdg-shell.c \
+	$(SRC_DIR)/gfx.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
