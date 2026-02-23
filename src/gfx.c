@@ -140,6 +140,13 @@ void renderer_use(struct renderer_s *renderer) {
                  gfx->context);
 }
 
+void renderer_swap(struct renderer_s *renderer) {
+  assert_notnull(renderer);
+
+  struct gfx_s *gfx = renderer->gfx;
+  eglSwapBuffers(gfx->display, renderer->surface);
+}
+
 void renderer_deinit(struct renderer_s *renderer) {
   assert_notnull(renderer);
   if (!renderer->alive)

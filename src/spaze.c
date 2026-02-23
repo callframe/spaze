@@ -22,8 +22,6 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
   }
 }
 
-static void render_frame(void) {}
-
 int main() {
   struct event_loop_s evl;
   enum event_loop_error_e err = event_loop_init(&evl);
@@ -42,13 +40,21 @@ int main() {
   if (win_err != window_error_ok)
     panic("failed to create window with: %d", win_err);
 
+  struct renderer_s renderer;
+  enum renderer_error_e renderer_err =
+      renderer_init(&renderer, &gfx, &window, 800, 600);
+  if (renderer_err != renderer_error_ok)
+    panic("failed to initialize renderer with: %d", renderer_err);
+
   bool should_quit = false;
   while (!should_quit) {
     event_loop_update(&evl);
     handle_events(&evl, &should_quit);
-    render_frame();
+
+    renderer_swap(&renderer);
   }
 
+  renderer_deinit(&renderer);
   window_deinit(&window);
   gfx_deinit(&gfx);
   event_loop_deinit(&evl);
