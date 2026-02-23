@@ -48,7 +48,7 @@ SPAZE_LD_FLAGS := -lwayland-client
 all: $(SPAZE)
 
 $(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
-$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
+$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT) $(GLAD_OBJECT)
 	$(PRINT) " LD $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
