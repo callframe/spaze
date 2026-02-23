@@ -3,6 +3,7 @@
 #include "spaze/windowing.h"
 #include <EGL/egl.h>
 #include <EGL/eglplatform.h>
+#include <stdbool.h>
 
 #define OPENGL_MAJOR 4
 #define OPENGL_MINOR 6
@@ -29,16 +30,21 @@ static const EGLint CONFIG_ATTRS[] = {
 
 /* clang-format on */
 
-static EGLConfig gfx_choose_config(struct gfx_s *gfx) {
+static bool gfx_choose_config(EGLDisplay display, EGLConfig *out_config) {
+  assert(display == EGL_NO_DISPLAY);
+  assert_notnull(out_config);
+
+  EGLint nconfigs = 0;
   EGLConfig config;
-  EGLint nconfs;
 
   EGLBoolean success =
-      eglChooseConfig(gfx->display, CONFIG_ATTRS, &config, 1, &nconfs);
-  if (!success || nconfs == 0)
-    return NULL;
+      eglChooseConfig(display, CONFIG_ATTRS, &config, 1, &nconfigs);
 
-  return nconfs == 1 ? config : NULL;
+  if (!success || nconfigs < 1)
+    return false;
+
+  *out_config = config;
+  return true;
 }
 
 enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
@@ -51,8 +57,8 @@ enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
   if (!eglInitialize(edisplay, NULL, NULL))
     return gfx_error_egl_init_failed;
 
-  EGLConfig econfig = gfx_choose_config(gfx);
-  if (econfig == NULL)
+  EGLConfig econfig;
+  if (!gfx_choose_config(edisplay, &econfig))
     return gfx_error_egl_config_not_found;
 
   EGLContext econtext =
