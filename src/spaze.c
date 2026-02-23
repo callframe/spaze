@@ -46,6 +46,8 @@ int main() {
   if (renderer_err != renderer_error_ok)
     panic("failed to initialize renderer with: %d", renderer_err);
 
+  renderer_use(&renderer);
+
   bool should_quit = false;
   while (!should_quit) {
     event_loop_update(&evl);

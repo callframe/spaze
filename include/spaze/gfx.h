@@ -11,6 +11,7 @@ struct window_s;
 
 enum gfx_error_e {
   gfx_error_ok,
+  gfx_error_get_display_failed,
   gfx_error_egl_init_failed,
   gfx_error_egl_config_not_found,
   gfx_error_egl_context_creation_failed,

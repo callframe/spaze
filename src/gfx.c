@@ -35,9 +35,6 @@ static const EGLint CONFIG_ATTRS[] = {
 static inline void gfx_make_current(EGLDisplay display, EGLSurface surface,
                                     EGLContext context) {
   assert(display != EGL_NO_DISPLAY);
-  assert(surface != EGL_NO_SURFACE);
-  assert(context != EGL_NO_CONTEXT);
-
   eglMakeCurrent(display, surface, surface, context);
 }
 
@@ -64,7 +61,8 @@ enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
   memset(gfx, 0, sizeof(*gfx));
 
   EGLDisplay edisplay = eglGetDisplay((EGLNativeDisplayType)evl->display);
-  assert_notnull(edisplay);
+  if (edisplay == EGL_NO_DISPLAY)
+    return gfx_error_get_display_failed;
 
   if (!eglInitialize(edisplay, NULL, NULL))
     return gfx_error_egl_init_failed;
@@ -144,6 +142,8 @@ void renderer_swap(struct renderer_s *renderer) {
   assert_notnull(renderer);
 
   struct gfx_s *gfx = renderer->gfx;
+
+  renderer_use(renderer);
   eglSwapBuffers(gfx->display, renderer->surface);
 }
 
