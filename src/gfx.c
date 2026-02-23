@@ -31,7 +31,7 @@ static const EGLint CONFIG_ATTRS[] = {
 /* clang-format on */
 
 static bool gfx_choose_config(EGLDisplay display, EGLConfig *out_config) {
-  assert(display == EGL_NO_DISPLAY);
+  assert(display != EGL_NO_DISPLAY);
   assert_notnull(out_config);
 
   EGLint nconfigs = 0;
