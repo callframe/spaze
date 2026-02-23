@@ -1,7 +1,10 @@
 #include "spaze/windowing.h"
 #include "spaze/array.h"
 #include "spaze/common.h"
+#include <poll.h>
 #include <string.h>
+#include <sys/poll.h>
+#include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
 #define WL_VERSION 1
@@ -35,6 +38,7 @@ static struct wl_registry_listener registry_listener = {
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
   assert_notnull(loop);
+  memset(loop, 0, sizeof(*loop));
 
   loop->events = array_init(struct event_s);
   struct wl_display *display = wl_display_connect(NULL);
@@ -49,18 +53,65 @@ enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
 
   wl_registry_add_listener(registry, &registry_listener, loop);
 
+  loop->display = display;
+  wl_display_roundtrip(display);
+
   return event_loop_error_ok;
+}
+
+void event_loop_run(struct event_loop_s *loop, bool *should_exit) {
+  assert_notnull(loop);
+  assert_notnull(should_exit);
+
+  int fd = wl_display_get_fd(loop->display);
+  struct pollfd pfd = {.fd = fd, .events = POLLIN};
+
+  while (true) {
+    if (*should_exit)
+      break;
+
+    if (wl_display_prepare_read(loop->display) == -1) {
+      wl_display_dispatch_pending(loop->display);
+      continue;
+    }
+
+    if (wl_display_flush(loop->display) < 0) {
+      wl_display_cancel_read(loop->display);
+      continue;
+    }
+
+    int rc = poll(&pfd, 1, 1);
+
+    if (rc < 0) {
+      wl_display_cancel_read(loop->display);
+      continue;
+    }
+
+    if (pfd.revents & (POLLHUP | POLLERR)) {
+      wl_display_cancel_read(loop->display);
+      break;
+    }
+
+    if (pfd.revents & POLLIN)
+      wl_display_read_events(loop->display);
+    else
+      wl_display_cancel_read(loop->display);
+
+    wl_display_dispatch_pending(loop->display);
+  }
 }
 
 void event_loop_deinit(struct event_loop_s *loop) {
   assert_notnull(loop);
   array_deinit(&loop->events);
 
-  if (loop->display == NULL)
+  if (loop->display == NULL || loop->compositor == NULL)
     return;
 
   array_deinit(&loop->events);
+  wl_compositor_destroy(loop->compositor);
   wl_display_disconnect(loop->display);
 
+  loop->compositor = NULL;
   loop->display = NULL;
 }

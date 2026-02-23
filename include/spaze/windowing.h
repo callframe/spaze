@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spaze/array.h"
+#include <stdbool.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
@@ -17,4 +18,5 @@ struct event_loop_s {
 };
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop);
+void event_loop_run(struct event_loop_s *loop, bool *should_exit);
 void event_loop_deinit(struct event_loop_s *loop);
