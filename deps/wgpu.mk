@@ -13,7 +13,8 @@ WGPU_CARGO_MANIFEST_FLAG := \
 
 WGPU_CARGO_FLAGS := \
 	$(WGPU_CARGO_MANIFEST_FLAG) \
-	--artifact-dir $(WGPU_ARTIFACT_DIR)
+	--artifact-dir $(WGPU_ARTIFACT_DIR) \
+	--no-default-features --features vulkan
 
 ifeq ($(RELEASE), 1)
 	WGPU_CARGO_FLAGS += --release
