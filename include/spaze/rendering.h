@@ -6,6 +6,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+static const char *const VERTEX_SHADER = "#version 460 core\n";
+
+static const char *const FRAGMENT_SHADER = "#version 460 core\n";
+
 enum {
   rendering_transfer_format = GL_BGRA,
   rendering_color_format = GL_RGBA8,
