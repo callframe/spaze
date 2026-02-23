@@ -3,9 +3,9 @@
 #include "spaze/windowing.h"
 #include <EGL/egl.h>
 #include <EGL/eglplatform.h>
+#include <glad.h>
 #include <stdbool.h>
 #include <string.h>
-#include <wayland-egl-core.h>
 
 #define OPENGL_MAJOR 4
 #define OPENGL_MINOR 6
@@ -78,6 +78,10 @@ enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
       eglCreateContext(edisplay, econfig, EGL_NO_CONTEXT, CONTEXT_ATTRS);
   if (econtext == EGL_NO_CONTEXT)
     return gfx_error_egl_context_creation_failed;
+
+  // load glad
+  if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress))
+    return gfx_error_opengl_load_failed;
 
   gfx->display = edisplay;
   gfx->config = econfig;

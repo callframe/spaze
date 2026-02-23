@@ -15,6 +15,7 @@ enum gfx_error_e {
   gfx_error_egl_init_failed,
   gfx_error_egl_config_not_found,
   gfx_error_egl_context_creation_failed,
+  gfx_error_opengl_load_failed,
 };
 
 struct gfx_s {

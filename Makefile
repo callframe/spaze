@@ -49,8 +49,7 @@ SPAZE := $(WORK_DIR)/spaze
 SPAZE_CC_FLAGS := \
 	-I$(MIMALLOC_INCLUDE_DIR) \
 	-I$(INCLUDE_DIR) \
-	-I$(WGPU_INCLUDE_DIR) \
-	-I$(WGPU_WEBGPU_INCLUDE_DIR)
+	-I$(GLAD_DIR)
 
 SPAZE_LD_FLAGS := -lwayland-client -lwayland-egl -lGL -lEGL
 
@@ -58,7 +57,7 @@ SPAZE_LD_FLAGS := -lwayland-client -lwayland-egl -lGL -lEGL
 all: $(SPAZE)
 
 $(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
-$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
+$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT) $(GLAD_OBJECT)
 	$(PRINT) " LD $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
