@@ -69,6 +69,7 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     framebuffer_update(&framebuffer);
+    framebuffer_draw(&framebuffer);
     renderer_swap(&renderer);
   }
 

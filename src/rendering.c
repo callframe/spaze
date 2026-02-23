@@ -110,6 +110,15 @@ void framebuffer_resize(struct framebuffer_s *fb) {
   framebuffer_backend_update(&fb->backend, renderer->width, renderer->height);
 }
 
+void framebuffer_draw(struct framebuffer_s *fb) {
+  assert_notnull(fb);
+  assert(fb->alive);
+
+  struct framebuffer_backend_s *backend = &fb->backend;
+  glBindTextureUnit(rendering_texture_unit, backend->texture);
+  glBindSampler(rendering_texture_unit, backend->sampler);
+}
+
 void framebuffer_deinit(struct framebuffer_s *fb) {
   assert_notnull(fb);
   if (!fb->alive)

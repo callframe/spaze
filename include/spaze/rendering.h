@@ -6,9 +6,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-static const char *const VERTEX_SHADER = "#version 460 core\n";
+static const char *const VERTEX_SHADER =
+    "#version 460 core\n"
+    "layout (location = 0) in vec2 aPos;\n"
+    "layout (location = 1) in vec2 aUV;\n"
+    "out vec2 vUV;\n"
+    "void main()\n"
+    "{\n"
+    "    vUV = aUV;\n"
+    "    gl_Position = vec4(aPos, 0.0, 1.0);\n"
+    "}\n";
 
-static const char *const FRAGMENT_SHADER = "#version 460 core\n";
+static const char *const FRAGMENT_SHADER =
+    "#version 460 core\n"
+    "layout (binding = 0) uniform sampler2D uTex;\n"
+    "in vec2 vUV;\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "    FragColor = texture(uTex, vUV);\n"
+    "}\n";
 
 enum {
   rendering_transfer_format = GL_BGRA,
@@ -22,6 +39,8 @@ enum {
   rendering_green_shift = 8,
   rendering_blue_shift = 16,
   rendering_alpha_shift = 24,
+
+  rendering_texture_unit = 0,
 };
 
 _Static_assert(rendering_pixel_size == sizeof(uint32_t),
@@ -69,4 +88,5 @@ enum framebuffer_error_e framebuffer_init(struct framebuffer_s *fb,
                                           struct renderer_s *renderer);
 void framebuffer_resize(struct framebuffer_s *fb);
 void framebuffer_update(struct framebuffer_s *fb);
+void framebuffer_draw(struct framebuffer_s *fb);
 void framebuffer_deinit(struct framebuffer_s *fb);
