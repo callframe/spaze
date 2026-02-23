@@ -26,25 +26,25 @@ int main() {
   struct event_loop_s evl;
   enum event_loop_error_e err = event_loop_init(&evl);
   if (err != event_loop_error_ok) {
-    panic("failed to create eventloop with: %d", err);
+    panic("failed to create eventloop with: %d\n", err);
     return EXIT_FAILURE;
   }
 
   struct gfx_s gfx;
   enum gfx_error_e gfx_err = gfx_init(&gfx, &evl);
   if (gfx_err != gfx_error_ok)
-    panic("failed to initialize gfx with: %d", gfx_err);
+    panic("failed to initialize gfx with: %d\n", gfx_err);
 
   struct window_s window;
   enum window_error_e win_err = window_init(&window, &evl);
   if (win_err != window_error_ok)
-    panic("failed to create window with: %d", win_err);
+    panic("failed to create window with: %d\n", win_err);
 
   struct renderer_s renderer;
   enum renderer_error_e renderer_err =
       renderer_init(&renderer, &gfx, &window, 800, 600);
   if (renderer_err != renderer_error_ok)
-    panic("failed to initialize renderer with: %d", renderer_err);
+    panic("failed to initialize renderer with: %d\n", renderer_err);
 
   renderer_use(&renderer);
 
