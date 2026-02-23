@@ -28,18 +28,19 @@ endif
 SOURCES := \
 	$(WORK_DIR)/spaze.c \
 	$(WORK_DIR)/common.c \
-	$(WORK_DIR)/array.c
+	$(WORK_DIR)/array.c \
+	$(WORK_DIR)/windowing.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
 
 SPAZE := $(WORK_DIR)/spaze
 
-SPAZE_LD_FLAGS := 
-
 SPAZE_CC_FLAGS := \
 	-I$(MIMALLOC_INCLUDE_DIR) \
 	-I$(INCLUDE_DIR)
+
+SPAZE_LD_FLAGS := -lwayland-client
 
 .PHONY: all
 all: $(SPAZE)
