@@ -1,3 +1,4 @@
+#include "glad.h"
 #include "spaze/common.h"
 #include "spaze/gfx.h"
 #include "spaze/windowing.h"
@@ -9,7 +10,8 @@
 #define MiB(n) (KiB(n) * 1024)
 #define SHM_POOL_SIZE (MiB(20))
 
-static void handle_events(struct event_loop_s *loop, bool *should_quit) {
+static void handle_events(struct event_loop_s *loop,
+                          struct renderer_s *renderer, bool *should_quit) {
   struct event_s event;
   while (event_loop_get(loop, &event)) {
     switch (event.kind) {
@@ -17,6 +19,8 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
       *should_quit = true;
       break;
     case event_kind_resize:
+      renderer_resize(renderer, event.data.resize.new_width,
+                      event.data.resize.new_height);
       break;
     }
   }
@@ -51,7 +55,10 @@ int main() {
   bool should_quit = false;
   while (!should_quit) {
     event_loop_update(&evl);
-    handle_events(&evl, &should_quit);
+    handle_events(&evl, &renderer, &should_quit);
+
+    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     renderer_swap(&renderer);
   }

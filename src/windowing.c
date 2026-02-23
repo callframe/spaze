@@ -174,6 +174,18 @@ static struct xdg_toplevel_listener XDG_TOPLEVEL_LISTENER = {
     .configure = window_configure,
 };
 
+static void surface_configure(void *data, struct xdg_surface *xdg_surface,
+                              uint32_t serial) {
+  struct window_s *window = (struct window_s *)data;
+  assert_notnull(window);
+
+  xdg_surface_ack_configure(xdg_surface, serial);
+}
+
+static struct xdg_surface_listener XDG_SURFACE_LISTENER = {
+    .configure = surface_configure,
+};
+
 enum window_error_e window_init(struct window_s *window,
                                 struct event_loop_s *loop) {
   assert_notnull(window);
@@ -206,9 +218,12 @@ enum window_error_e window_init(struct window_s *window,
   window->xdg_toplevel = xdg_toplevel;
   window->loop = loop;
   window->alive = true;
+
+  xdg_surface_add_listener(window->xdg_surface, &XDG_SURFACE_LISTENER, window);
   xdg_toplevel_add_listener(window->xdg_toplevel, &XDG_TOPLEVEL_LISTENER,
                             window);
 
+  wl_surface_commit(surface);
   return window_error_ok;
 }
 

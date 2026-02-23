@@ -46,4 +46,6 @@ enum renderer_error_e renderer_init(struct renderer_s *renderer,
                                     uint32_t width, uint32_t height);
 bool renderer_use(struct renderer_s *renderer);
 void renderer_swap(struct renderer_s *renderer);
+void renderer_resize(struct renderer_s *renderer, uint32_t new_width,
+                     uint32_t new_height);
 void renderer_deinit(struct renderer_s *renderer);

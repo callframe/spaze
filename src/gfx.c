@@ -160,6 +160,16 @@ void renderer_swap(struct renderer_s *renderer) {
   eglSwapBuffers(gfx->display, renderer->surface);
 }
 
+void renderer_resize(struct renderer_s *renderer, uint32_t new_width,
+                     uint32_t new_height) {
+  assert_notnull(renderer);
+
+  renderer->width = new_width;
+  renderer->height = new_height;
+
+  wl_egl_window_resize(renderer->window, new_width, new_height, 0, 0);
+}
+
 void renderer_deinit(struct renderer_s *renderer) {
   assert_notnull(renderer);
   if (!renderer->alive)
