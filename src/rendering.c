@@ -4,7 +4,6 @@
 #include "spaze/common.h"
 #include "spaze/gfx.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 enum framebuffer_backend_error_e

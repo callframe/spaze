@@ -4,6 +4,7 @@
 #include "spaze/xdg-shell.h"
 #include <poll.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
@@ -158,7 +159,11 @@ static void window_configure(void *data, struct xdg_toplevel *xdg_toplevel,
   struct window_s *window = (struct window_s *)data;
   assert_notnull(window);
 
-  struct event_resize_s resize = {.new_width = width, .new_height = height};
+  usize_t safe_width = width > 0 ? width : 1;
+  usize_t safe_height = height > 0 ? height : 1;
+
+  struct event_resize_s resize = {.new_width = safe_width,
+                                  .new_height = safe_height};
 
   struct event_s event = {
       .kind = event_kind_resize,
