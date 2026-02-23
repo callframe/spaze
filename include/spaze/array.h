@@ -11,6 +11,8 @@ struct array_s {
   usize_t elem_size;
 };
 
+#define array_is_empty(arr) ((arr)->length == 0)
+
 #define array_init(T)                                                          \
   ((struct array_s){                                                           \
       .ptr = NULL, .length = 0, .capacity = 0, .elem_size = sizeof(T)})

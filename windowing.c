@@ -18,7 +18,7 @@ static void wm_base_ping(void *data, struct xdg_wm_base *xdg_wm_base,
   xdg_wm_base_pong(xdg_wm_base, serial);
 }
 
-static struct xdg_wm_base_listener wm_base_listener = {
+static struct xdg_wm_base_listener WM_BASE_LISTENER = {
     .ping = wm_base_ping,
 };
 
@@ -44,7 +44,7 @@ static void registry_global(void *data, struct wl_registry *registry,
     assert_notnull(wm_base);
 
     loop->wm_base = wm_base;
-    xdg_wm_base_add_listener(loop->wm_base, &wm_base_listener, loop);
+    xdg_wm_base_add_listener(loop->wm_base, &WM_BASE_LISTENER, loop);
   }
 }
 
@@ -55,13 +55,8 @@ static void registry_global_remove(void *data, struct wl_registry *registry,
   (void)name;
 }
 
-static struct wl_registry_listener registry_listener = {
+static struct wl_registry_listener WL_REGISTERY_LISTENER = {
     .global = registry_global, .global_remove = registry_global_remove};
-
-static struct xdg_toplevel_listener toplevel_listener = {
-    .configure = NULL,
-    .close = NULL,
-};
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
   assert_notnull(loop);
@@ -77,7 +72,7 @@ enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
     wl_display_disconnect(display);
     return event_loop_error_registry_get_failed;
   }
-  wl_registry_add_listener(registry, &registry_listener, loop);
+  wl_registry_add_listener(registry, &WL_REGISTERY_LISTENER, loop);
 
   loop->display = display;
   loop->alive = true;
@@ -119,6 +114,17 @@ void event_loop_update(struct event_loop_s *loop) {
   wl_display_dispatch_pending(loop->display);
 }
 
+bool event_loop_get(struct event_loop_s *loop, struct event_s *event) {
+  assert_notnull(loop);
+  assert_notnull(event);
+
+  if (array_is_empty(&loop->events))
+    return false;
+
+  array_pop(&loop->events, event);
+  return true;
+}
+
 void event_loop_deinit(struct event_loop_s *loop) {
   assert_notnull(loop);
   array_deinit(&loop->events);
@@ -133,6 +139,44 @@ void event_loop_deinit(struct event_loop_s *loop) {
   loop->wm_base = NULL;
   loop->alive = false;
 }
+
+static void window_close(void *data, struct xdg_toplevel *xdg_toplevel) {
+  (void)xdg_toplevel;
+
+  struct window_s *window = (struct window_s *)data;
+  assert_notnull(window);
+
+  union event_data_u inner = {0};
+
+  struct event_s event = {
+      .kind = event_kind_close, .data = inner, .window = window};
+  array_push(&window->loop->events, &event);
+}
+
+static void window_configure(void *data, struct xdg_toplevel *xdg_toplevel,
+                             int32_t width, int32_t height,
+                             struct wl_array *states) {
+  (void)xdg_toplevel;
+  (void)states;
+
+  struct window_s *window = (struct window_s *)data;
+  assert_notnull(window);
+
+  struct event_resize_s resize = {.new_width = width, .new_height = height};
+
+  struct event_s event = {
+      .kind = event_kind_resize,
+      .data = {.resize = resize},
+      .window = window,
+  };
+
+  array_push(&window->loop->events, &event);
+}
+
+static struct xdg_toplevel_listener XDG_TOPLEVEL_LISTENER = {
+    .close = window_close,
+    .configure = window_configure,
+};
 
 enum window_error_e window_init(struct window_s *window,
                                 struct event_loop_s *loop) {
@@ -166,7 +210,8 @@ enum window_error_e window_init(struct window_s *window,
   window->xdg_toplevel = xdg_toplevel;
   window->loop = loop;
   window->alive = true;
-  xdg_toplevel_add_listener(window->xdg_toplevel, &toplevel_listener, window);
+  xdg_toplevel_add_listener(window->xdg_toplevel, &XDG_TOPLEVEL_LISTENER,
+                            window);
 
   return window_error_ok;
 }

@@ -9,6 +9,7 @@
 
 enum event_kind_e {
   event_kind_close,
+  event_kind_resize,
 };
 
 struct event_resize_s {
@@ -22,6 +23,7 @@ union event_data_u {
 struct event_s {
   enum event_kind_e kind;
   union event_data_u data;
+  struct window_s *window;
 };
 
 enum event_loop_error_e {
@@ -40,6 +42,7 @@ struct event_loop_s {
 
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop);
 void event_loop_update(struct event_loop_s *loop);
+bool event_loop_get(struct event_loop_s *loop, struct event_s *event);
 void event_loop_deinit(struct event_loop_s *loop);
 
 enum window_error_e {
