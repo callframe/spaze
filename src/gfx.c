@@ -134,6 +134,7 @@ enum renderer_error_e renderer_init(struct renderer_s *renderer,
 
 bool renderer_use(struct renderer_s *renderer) {
   assert_notnull(renderer);
+  assert(renderer->alive);
 
   struct gfx_s *gfx = renderer->gfx;
   GLboolean result = eglMakeCurrent(gfx->display, renderer->surface,
@@ -153,6 +154,7 @@ bool renderer_use(struct renderer_s *renderer) {
 
 void renderer_swap(struct renderer_s *renderer) {
   assert_notnull(renderer);
+  assert(renderer->alive);
 
   struct gfx_s *gfx = renderer->gfx;
 
@@ -163,6 +165,7 @@ void renderer_swap(struct renderer_s *renderer) {
 void renderer_resize(struct renderer_s *renderer, uint32_t new_width,
                      uint32_t new_height) {
   assert_notnull(renderer);
+  assert(renderer->alive);
 
   renderer->width = new_width;
   renderer->height = new_height;

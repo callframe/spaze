@@ -1,6 +1,7 @@
 #include "glad.h"
 #include "spaze/common.h"
 #include "spaze/gfx.h"
+#include "spaze/rendering.h"
 #include "spaze/windowing.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -11,8 +12,10 @@
 #define SHM_POOL_SIZE (MiB(20))
 
 static void handle_events(struct event_loop_s *loop,
-                          struct renderer_s *renderer, bool *should_quit) {
+                          struct renderer_s *renderer, struct framebuffer_s *fb,
+                          bool *should_quit) {
   struct event_s event;
+
   while (event_loop_get(loop, &event)) {
     switch (event.kind) {
     case event_kind_close:
@@ -21,6 +24,7 @@ static void handle_events(struct event_loop_s *loop,
     case event_kind_resize:
       renderer_resize(renderer, event.data.resize.new_width,
                       event.data.resize.new_height);
+      framebuffer_resize(fb);
       break;
     }
   }
@@ -49,20 +53,26 @@ int main() {
       renderer_init(&renderer, &gfx, &window, 800, 600);
   if (renderer_err != renderer_error_ok)
     panic("failed to initialize renderer with: %d\n", renderer_err);
-
   renderer_use(&renderer);
+
+  struct framebuffer_s framebuffer;
+  enum framebuffer_error_e fb_err = framebuffer_init(&framebuffer, &renderer);
+  if (fb_err != framebuffer_error_ok)
+    panic("failed to initialize framebuffer with: %d\n", fb_err);
 
   bool should_quit = false;
   while (!should_quit) {
     event_loop_update(&evl);
-    handle_events(&evl, &renderer, &should_quit);
+    handle_events(&evl, &renderer, &framebuffer, &should_quit);
 
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    framebuffer_update(&framebuffer);
     renderer_swap(&renderer);
   }
 
+  framebuffer_deinit(&framebuffer);
   renderer_deinit(&renderer);
   window_deinit(&window);
   gfx_deinit(&gfx);

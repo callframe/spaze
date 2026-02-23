@@ -39,7 +39,8 @@ SOURCES := \
 	$(SRC_DIR)/windowing.c \
 	$(SRC_DIR)/xdg-shell.c \
 	$(SRC_DIR)/gfx.c \
-	$(SRC_DIR)/list.c
+	$(SRC_DIR)/list.c \
+	$(SRC_DIR)/rendering.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
