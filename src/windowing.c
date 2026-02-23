@@ -46,14 +46,6 @@ static void registry_global(void *data, struct wl_registry *registry,
     loop->wm_base = wm_base;
     xdg_wm_base_add_listener(loop->wm_base, &WM_BASE_LISTENER, loop);
   }
-
-  if (!strcmp(interface, wl_shm_interface.name)) {
-    struct wl_shm *shm =
-        wl_registry_bind(registry, name, &wl_shm_interface, WL_VERSION);
-    assert_notnull(shm);
-
-    loop->shm = shm;
-  }
 }
 
 static void registry_global_remove(void *data, struct wl_registry *registry,
