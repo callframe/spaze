@@ -16,6 +16,3 @@ void list_insert_after(struct list_s *list, struct link_s *link,
                        struct link_s *new_link);
 void list_push(struct list_s *list, struct link_s *link);
 void list_remove(struct list_s *list, struct link_s *link);
-
-#define list_iter_forward(list, link)                                          \
-  for (struct link_s *link = (list)->head; link != NULL; link = link->next)

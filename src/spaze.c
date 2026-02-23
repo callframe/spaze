@@ -32,11 +32,10 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  struct shared_pool_s pool;
-  enum shared_pool_error_e pool_err =
-      shared_pool_init(&pool, evl.shm, SHM_POOL_SIZE);
-  if (pool_err != shared_pool_error_ok)
-    panic("failed to create shared pool with: %d", pool_err);
+  struct gfx_s gfx;
+  enum gfx_error_e gfx_err = gfx_init(&gfx);
+  if (gfx_err != gfx_error_ok)
+    panic("failed to create gfx with: %d", gfx_err);
 
   struct window_s window;
   enum window_error_e win_err = window_init(&window, &evl);
@@ -51,6 +50,6 @@ int main() {
   }
 
   window_deinit(&window);
-  shared_pool_deinit(&pool);
+  gfx_deinit(&gfx);
   event_loop_deinit(&evl);
 }

@@ -45,7 +45,7 @@ SPAZE_CC_FLAGS := \
 	-I$(MIMALLOC_INCLUDE_DIR) \
 	-I$(INCLUDE_DIR)
 
-SPAZE_LD_FLAGS := -lwayland-client
+SPAZE_LD_FLAGS := -lwayland-client -lvulkan
 
 .PHONY: all
 all: $(SPAZE)
