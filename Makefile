@@ -47,8 +47,7 @@ SPAZE := $(WORK_DIR)/spaze
 
 SPAZE_CC_FLAGS := \
 	-I$(MIMALLOC_INCLUDE_DIR) \
-	-I$(INCLUDE_DIR) \
-	-I$(GLAD_DIR)
+	-I$(INCLUDE_DIR) 
 
 SPAZE_LD_FLAGS := -lwayland-client
 
