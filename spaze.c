@@ -16,6 +16,8 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
   }
 }
 
+static void render_frame(void) {}
+
 int main() {
   struct event_loop_s evl;
   enum event_loop_error_e err = event_loop_init(&evl);
@@ -29,6 +31,7 @@ int main() {
   while (!should_quit) {
     event_loop_update(&evl);
     handle_events(&evl, &should_quit);
+    render_frame();
   }
 
   event_loop_deinit(&evl);
