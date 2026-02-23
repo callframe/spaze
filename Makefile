@@ -18,7 +18,11 @@ CC_FLAGS := \
 	-Wall -Wextra -Werror \
 	-MMD -MP -fPIC
 
-LD_FLAGS :=
+ifeq ($(RELEASE), 1)
+	CC_FLAGS += -O3
+else
+	CC_FLAGS += -g
+endif
 
 SOURCES := \
 	$(WORK_DIR)/spaze.c
@@ -28,19 +32,25 @@ DEPENDS := $(SOURCES:.c=.d)
 
 SPAZE := $(WORK_DIR)/spaze
 
+SPAZE_LD_FLAGS := 
+
+SPAZE_CC_FLAGS := \
+	-I$(MIMALLOC_INCLUDE_DIR)
+
 .PHONY: all
 all: $(SPAZE)
 
+$(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
 $(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
 	$(PRINT) " LD $(notdir $@)\n"
-	$(CC) $(CC_FLAGS) -o $@ $^ $(LD_FLAGS)
+	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
 %.o: %.c
 	$(PRINT) " CC $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -c -o $@ $<
 
 .PHONY: clean
-clean:
+clean::
 	$(RM) $(RM_FLAGS) $(OBJECTS) $(DEPENDS) $(SPAZE)
 
 -include $(DEPENDS)
