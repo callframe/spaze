@@ -2,3 +2,6 @@
 	path = deps/mimalloc
 	url = https://github.com/microsoft/mimalloc.git
 	branch = dev3
+[submodule "deps/wgpu"]
+	path = deps/wgpu
+	url = https://github.com/gfx-rs/wgpu-native.git

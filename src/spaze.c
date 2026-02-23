@@ -1,6 +1,8 @@
 #include "spaze/common.h"
 #include "spaze/gfx.h"
 #include "spaze/windowing.h"
+#include "webgpu.h"
+#include "wgpu.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +28,10 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
 static void render_frame(void) { fprintf(stderr, "Rendering frame...\n"); }
 
 int main() {
+  WGPUInstance instance = wgpuCreateInstance(NULL);
+  if (instance == NULL)
+    panic("failed to create wgpu instance");
+
   struct gfx_s gfx;
   enum gfx_error_e gfx_err = gfx_init(&gfx);
   if (gfx_err != gfx_error_ok)

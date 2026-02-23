@@ -14,6 +14,11 @@ PRINT ?= printf
 RM ?= rm
 RM_FLAGS := -f
 
+CARGO ?= cargo
+CARGO_FLAGS := \
+	-Zunstable-options \
+	--quiet
+
 CC ?= clang
 CC_FLAGS := \
 	-std=c17 \
@@ -43,7 +48,9 @@ SPAZE := $(WORK_DIR)/spaze
 
 SPAZE_CC_FLAGS := \
 	-I$(MIMALLOC_INCLUDE_DIR) \
-	-I$(INCLUDE_DIR)
+	-I$(INCLUDE_DIR) \
+	-I$(WGPU_INCLUDE_DIR) \
+	-I$(WGPU_WEBGPU_INCLUDE_DIR)
 
 SPAZE_LD_FLAGS := -lwayland-client -lvulkan
 
@@ -51,7 +58,7 @@ SPAZE_LD_FLAGS := -lwayland-client -lvulkan
 all: $(SPAZE)
 
 $(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
-$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
+$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT) $(WGPU_ARCHIVE)
 	$(PRINT) " LD $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
