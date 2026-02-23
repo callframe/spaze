@@ -138,13 +138,13 @@ bool renderer_use(struct renderer_s *renderer) {
   struct gfx_s *gfx = renderer->gfx;
   GLboolean result = eglMakeCurrent(gfx->display, renderer->surface,
                                     renderer->surface, gfx->context);
-  if (!result)
+  if (unlikely(!result))
     return false;
 
-  if (GL_LOADED)
+  if (likely(GL_LOADED))
     return true;
 
-  if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress))
+  if (unlikely(!gladLoadGLLoader((GLADloadproc)eglGetProcAddress)))
     return false;
 
   GL_LOADED = true;

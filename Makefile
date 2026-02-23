@@ -24,10 +24,10 @@ CC_FLAGS := \
 	-std=c17 \
 	-Wall -Wextra -Werror \
 	-MMD -MP -fPIC \
-	-D_DEFAULT_SOURCE
+	-D_DEFAULT_SOURCE 
 
 ifeq ($(RELEASE), 1)
-	CC_FLAGS += -O3
+	CC_FLAGS += -O3 -flto=auto
 else
 	CC_FLAGS += -g
 endif
