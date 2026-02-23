@@ -9,7 +9,7 @@
 enum event_loop_error_e {
   event_loop_error_ok,
   event_loop_error_connect_failed,
-  event_loop_error_registry_get,
+  event_loop_error_registry_get_failed,
 };
 
 struct event_loop_s {
@@ -22,3 +22,20 @@ struct event_loop_s {
 enum event_loop_error_e event_loop_init(struct event_loop_s *loop);
 void event_loop_update(struct event_loop_s *loop);
 void event_loop_deinit(struct event_loop_s *loop);
+
+enum window_error_e {
+  window_error_ok,
+  window_error_wl_surface_create_failed,
+  window_error_xdg_surface_create_failed,
+  window_error_xdg_toplevel_create_failed,
+};
+
+struct window_s {
+  struct wl_surface *surface;
+  struct xdg_surface *xdg_surface;
+  struct xdg_toplevel *xdg_toplevel;
+};
+
+enum window_error_e window_init(struct window_s *window,
+                                struct event_loop_s *loop);
+enum window_error_e window_deinit(struct window_s *window);
