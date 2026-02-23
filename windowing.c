@@ -73,6 +73,8 @@ void event_loop_update(struct event_loop_s *loop) {
 
   int fd = wl_display_get_fd(loop->display);
   struct pollfd pfd = {.fd = fd, .events = POLLIN};
+  int rc = poll(&pfd, 1, 0);
+  bool has_errors = (rc < 0) || (pfd.revents & (POLLHUP | POLLERR)) != 0;
 
   if (wl_display_prepare_read(loop->display) == -1) {
     wl_display_dispatch_pending(loop->display);
@@ -84,19 +86,12 @@ void event_loop_update(struct event_loop_s *loop) {
     return;
   }
 
-  int rc = poll(&pfd, 1, 0);
-  if (rc < 0) {
-    wl_display_cancel_read(loop->display);
-    return;
-  }
-
-  bool has_events = (pfd.revents & POLLIN) != 0;
-  bool has_errors = (pfd.revents & (POLLHUP | POLLERR)) != 0;
   if (has_errors) {
     wl_display_cancel_read(loop->display);
     return;
   }
 
+  bool has_events = (pfd.revents & POLLIN) != 0;
   if (has_events)
     wl_display_read_events(loop->display);
   else
