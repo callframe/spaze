@@ -38,9 +38,7 @@ SOURCES := \
 	$(SRC_DIR)/array.c \
 	$(SRC_DIR)/windowing.c \
 	$(SRC_DIR)/xdg-shell.c \
-	$(SRC_DIR)/gfx.c \
-	$(SRC_DIR)/list.c \
-	$(SRC_DIR)/rendering.c
+	$(SRC_DIR)/list.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
@@ -52,13 +50,13 @@ SPAZE_CC_FLAGS := \
 	-I$(INCLUDE_DIR) \
 	-I$(GLAD_DIR)
 
-SPAZE_LD_FLAGS := -lwayland-client -lwayland-egl -lGL -lEGL
+SPAZE_LD_FLAGS := -lwayland-client
 
 .PHONY: all
 all: $(SPAZE)
 
 $(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
-$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT) $(GLAD_OBJECT)
+$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
 	$(PRINT) " LD $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
