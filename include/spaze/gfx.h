@@ -7,6 +7,7 @@
 #include <wayland-egl.h>
 
 struct event_loop_s;
+struct window_s;
 
 enum gfx_error_e {
   gfx_error_ok,
@@ -23,4 +24,25 @@ struct gfx_s {
 };
 
 enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl);
+void gfx_use(struct gfx_s *gfx);
 void gfx_deinit(struct gfx_s *gfx);
+
+enum renderer_error_e {
+  renderer_error_ok,
+  renderer_error_window_creation_failed,
+  renderer_error_egl_surface_creation_failed,
+};
+
+struct renderer_s {
+  struct gfx_s *gfx;
+  EGLSurface surface;
+  struct wl_egl_window *window;
+  uint32_t width, height;
+  bool alive;
+};
+
+enum renderer_error_e renderer_init(struct renderer_s *renderer,
+                                    struct gfx_s *gfx, struct window_s *window,
+                                    uint32_t width, uint32_t height);
+void renderer_use(struct renderer_s *renderer);
+void renderer_deinit(struct renderer_s *renderer);

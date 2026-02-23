@@ -4,6 +4,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglplatform.h>
 #include <stdbool.h>
+#include <string.h>
+#include <wayland-egl-core.h>
 
 #define OPENGL_MAJOR 4
 #define OPENGL_MINOR 6
@@ -30,6 +32,15 @@ static const EGLint CONFIG_ATTRS[] = {
 
 /* clang-format on */
 
+static inline void gfx_make_current(EGLDisplay display, EGLSurface surface,
+                                    EGLContext context) {
+  assert(display != EGL_NO_DISPLAY);
+  assert(surface != EGL_NO_SURFACE);
+  assert(context != EGL_NO_CONTEXT);
+
+  eglMakeCurrent(display, surface, surface, context);
+}
+
 static bool gfx_choose_config(EGLDisplay display, EGLConfig *out_config) {
   assert(display != EGL_NO_DISPLAY);
   assert_notnull(out_config);
@@ -50,6 +61,7 @@ static bool gfx_choose_config(EGLDisplay display, EGLConfig *out_config) {
 enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
   assert_notnull(gfx);
   assert_notnull(evl);
+  memset(gfx, 0, sizeof(*gfx));
 
   EGLDisplay edisplay = eglGetDisplay((EGLNativeDisplayType)evl->display);
   assert_notnull(edisplay);
@@ -82,11 +94,59 @@ void gfx_deinit(struct gfx_s *gfx) {
   if (!gfx->alive)
     return;
 
+  gfx_make_current(gfx->display, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   eglDestroyContext(gfx->display, gfx->context);
   eglTerminate(gfx->display);
 
-  gfx->alive = false;
-  gfx->config = NULL;
-  gfx->display = NULL;
-  gfx->context = NULL;
+  memset(gfx, 0, sizeof(*gfx));
+}
+
+enum renderer_error_e renderer_init(struct renderer_s *renderer,
+                                    struct gfx_s *gfx, struct window_s *window,
+                                    uint32_t width, uint32_t height) {
+  assert_notnull(renderer);
+  assert_notnull(gfx);
+  assert_notnull(window);
+  memset(renderer, 0, sizeof(*renderer));
+
+  struct wl_egl_window *ewindow =
+      wl_egl_window_create(window->surface, width, height);
+  if (!ewindow)
+    return renderer_error_window_creation_failed;
+
+  EGLSurface esurface = eglCreateWindowSurface(
+      gfx->display, gfx->config, (EGLNativeWindowType)ewindow, NULL);
+
+  if (esurface == EGL_NO_SURFACE) {
+    wl_egl_window_destroy(ewindow);
+    return renderer_error_egl_surface_creation_failed;
+  }
+
+  renderer->gfx = gfx;
+  renderer->window = ewindow;
+  renderer->surface = esurface;
+  renderer->width = width;
+  renderer->height = height;
+  renderer->alive = true;
+
+  return renderer_error_ok;
+}
+
+void renderer_use(struct renderer_s *renderer) {
+  assert_notnull(renderer);
+
+  struct gfx_s *gfx = renderer->gfx;
+  eglMakeCurrent(gfx->display, renderer->surface, renderer->surface,
+                 gfx->context);
+}
+
+void renderer_deinit(struct renderer_s *renderer) {
+  assert_notnull(renderer);
+  if (!renderer->alive)
+    return;
+
+  eglDestroySurface(renderer->gfx->display, renderer->surface);
+  wl_egl_window_destroy(renderer->window);
+
+  memset(renderer, 0, sizeof(*renderer));
 }

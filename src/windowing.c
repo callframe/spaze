@@ -5,7 +5,6 @@
 #include <poll.h>
 #include <stdbool.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 #include <wayland-util.h>
@@ -133,11 +132,7 @@ void event_loop_deinit(struct event_loop_s *loop) {
     return;
 
   wl_display_disconnect(loop->display);
-
-  loop->display = NULL;
-  loop->compositor = NULL;
-  loop->wm_base = NULL;
-  loop->alive = false;
+  memset(loop, 0, sizeof(*loop));
 }
 
 static void window_close(void *data, struct xdg_toplevel *xdg_toplevel) {
@@ -226,10 +221,5 @@ void window_deinit(struct window_s *window) {
   xdg_surface_destroy(window->xdg_surface);
   xdg_toplevel_destroy(window->xdg_toplevel);
 
-  window->surface = NULL;
-  window->xdg_surface = NULL;
-  window->xdg_toplevel = NULL;
-  window->alive = false;
-
-  return;
+  memset(window, 0, sizeof(*window));
 }
