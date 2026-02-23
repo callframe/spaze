@@ -35,7 +35,7 @@ void array_push(struct array_s *arr, const void *elem) {
   assert_notnull(arr);
   assert_notnull(elem);
 
-  if (array_needs_resize(arr, 1))
+  if (unlikely(array_needs_resize(arr, 1)))
     array_resize(arr, array_new_capacity(arr));
 
   void *dest = array_elem_ptr(arr, arr->length);
@@ -46,7 +46,7 @@ void array_push(struct array_s *arr, const void *elem) {
 void *array_pop(struct array_s *arr, void *out) {
   assert_notnull(arr);
 
-  if (arr->length == 0)
+  if (unlikely(arr->length == 0))
     return NULL;
 
   arr->length--;
@@ -57,7 +57,7 @@ void *array_pop(struct array_s *arr, void *out) {
 
 void array_deinit(struct array_s *arr) {
   assert_notnull(arr);
-  if (arr->ptr == NULL)
+  if (unlikely(arr->ptr == NULL))
     return;
 
   mi_free(arr->ptr);

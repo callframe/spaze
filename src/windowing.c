@@ -86,6 +86,7 @@ void event_loop_update(struct event_loop_s *loop) {
 
   int fd = wl_display_get_fd(loop->display);
   struct pollfd pfd = {.fd = fd, .events = POLLIN};
+
   int rc = poll(&pfd, 1, 0);
   bool has_errors = (rc < 0) || (pfd.revents & (POLLHUP | POLLERR)) != 0;
 

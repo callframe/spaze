@@ -12,6 +12,9 @@ typedef uint32_t isize_t;
 #error "Unsupported pointer size"
 #endif
 
+#define likely(expr) __builtin_expect(!!(expr), 1)
+#define unlikely(expr) __builtin_expect(!!(expr), 0)
+
 _Noreturn void panic_impl(const char *file, int line, const char *func,
                           const char *fmt, ...);
 
@@ -20,7 +23,7 @@ _Noreturn void panic_impl(const char *file, int line, const char *func,
 
 #define assert(expr)                                                           \
   do {                                                                         \
-    if (!(expr))                                                               \
+    if (unlikely(!(expr)))                                                     \
       panic("Assertion failed: %s", #expr);                                    \
   } while (0)
 
