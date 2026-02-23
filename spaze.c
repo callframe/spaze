@@ -26,6 +26,11 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  struct window_s window;
+  enum window_error_e win_err = window_init(&window, &evl);
+  if (win_err != window_error_ok)
+    panic("failed to create window with: %d", win_err);
+
   bool should_quit = false;
 
   while (!should_quit) {
@@ -34,5 +39,6 @@ int main() {
     render_frame();
   }
 
+  window_deinit(&window);
   event_loop_deinit(&evl);
 }
