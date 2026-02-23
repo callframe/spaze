@@ -69,6 +69,14 @@ enum shm_pool_error_e shm_pool_init(struct shm_pool_s *shm_pool,
   return shm_pool_error_ok;
 }
 
+struct wl_buffer *shm_pool_allocate(struct shm_pool_s *shm_pool, usize_t width,
+                                    usize_t height, uint32_t format) {
+  assert_notnull(shm_pool);
+  assert(shm_pool->alive);
+
+  return NULL;
+}
+
 void shm_pool_deinit(struct shm_pool_s *shm_pool) {
   assert_notnull(shm_pool);
 
