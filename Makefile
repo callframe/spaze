@@ -52,13 +52,13 @@ SPAZE_CC_FLAGS := \
 	-I$(WGPU_INCLUDE_DIR) \
 	-I$(WGPU_WEBGPU_INCLUDE_DIR)
 
-SPAZE_LD_FLAGS := -lwayland-client -lm -lvulkan
+SPAZE_LD_FLAGS := -lwayland-client -lwayland-egl -lGL -lEGL
 
 .PHONY: all
 all: $(SPAZE)
 
 $(SPAZE): CC_FLAGS += $(SPAZE_CC_FLAGS)
-$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT) $(WGPU_ARCHIVE)
+$(SPAZE): $(OBJECTS) $(MIMALLOC_OBJECT)
 	$(PRINT) " LD $(notdir $@)\n"
 	$(CC) $(CC_FLAGS) -o $@ $^ $(SPAZE_LD_FLAGS)
 
