@@ -2,6 +2,7 @@
 #include "spaze/array.h"
 #include "spaze/common.h"
 #include <poll.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/poll.h>
 #include <wayland-client-core.h>
@@ -59,46 +60,41 @@ enum event_loop_error_e event_loop_init(struct event_loop_s *loop) {
   return event_loop_error_ok;
 }
 
-void event_loop_run(struct event_loop_s *loop, bool *should_exit) {
+void event_loop_update(struct event_loop_s *loop) {
   assert_notnull(loop);
-  assert_notnull(should_exit);
 
   int fd = wl_display_get_fd(loop->display);
   struct pollfd pfd = {.fd = fd, .events = POLLIN};
 
-  while (true) {
-    if (*should_exit)
-      break;
-
-    if (wl_display_prepare_read(loop->display) == -1) {
-      wl_display_dispatch_pending(loop->display);
-      continue;
-    }
-
-    if (wl_display_flush(loop->display) < 0) {
-      wl_display_cancel_read(loop->display);
-      continue;
-    }
-
-    int rc = poll(&pfd, 1, 1);
-
-    if (rc < 0) {
-      wl_display_cancel_read(loop->display);
-      continue;
-    }
-
-    if (pfd.revents & (POLLHUP | POLLERR)) {
-      wl_display_cancel_read(loop->display);
-      break;
-    }
-
-    if (pfd.revents & POLLIN)
-      wl_display_read_events(loop->display);
-    else
-      wl_display_cancel_read(loop->display);
-
+  if (wl_display_prepare_read(loop->display) == -1) {
     wl_display_dispatch_pending(loop->display);
+    return;
   }
+
+  if (wl_display_flush(loop->display) < 0) {
+    wl_display_cancel_read(loop->display);
+    return;
+  }
+
+  int rc = poll(&pfd, 1, 0);
+  if (rc < 0) {
+    wl_display_cancel_read(loop->display);
+    return;
+  }
+
+  bool has_events = (pfd.revents & POLLIN) != 0;
+  bool has_errors = (pfd.revents & (POLLHUP | POLLERR)) != 0;
+  if (has_errors) {
+    wl_display_cancel_read(loop->display);
+    return;
+  }
+
+  if (has_events)
+    wl_display_read_events(loop->display);
+  else
+    wl_display_cancel_read(loop->display);
+
+  wl_display_dispatch_pending(loop->display);
 }
 
 void event_loop_deinit(struct event_loop_s *loop) {

@@ -11,8 +11,8 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  bool should_quit = false;
-  event_loop_run(&evl, &should_quit);
+  while (true)
+    event_loop_update(&evl);
 
   event_loop_deinit(&evl);
 }
