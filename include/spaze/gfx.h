@@ -15,7 +15,6 @@ enum gfx_error_e {
   gfx_error_egl_init_failed,
   gfx_error_egl_config_not_found,
   gfx_error_egl_context_creation_failed,
-  gfx_error_opengl_load_failed,
 };
 
 struct gfx_s {
@@ -26,7 +25,6 @@ struct gfx_s {
 };
 
 enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl);
-void gfx_use(struct gfx_s *gfx);
 void gfx_deinit(struct gfx_s *gfx);
 
 enum renderer_error_e {
@@ -46,6 +44,6 @@ struct renderer_s {
 enum renderer_error_e renderer_init(struct renderer_s *renderer,
                                     struct gfx_s *gfx, struct window_s *window,
                                     uint32_t width, uint32_t height);
-void renderer_use(struct renderer_s *renderer);
+bool renderer_use(struct renderer_s *renderer);
 void renderer_swap(struct renderer_s *renderer);
 void renderer_deinit(struct renderer_s *renderer);

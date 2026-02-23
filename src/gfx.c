@@ -11,6 +11,8 @@
 #define OPENGL_MINOR 6
 #define CHANNEL_WIDTH 8
 
+static bool GL_LOADED = false;
+
 /* clang-format off */
 
 static const EGLint CONTEXT_ATTRS[] = {
@@ -79,10 +81,6 @@ enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
   if (econtext == EGL_NO_CONTEXT)
     return gfx_error_egl_context_creation_failed;
 
-  // load glad
-  if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress))
-    return gfx_error_opengl_load_failed;
-
   gfx->display = edisplay;
   gfx->config = econfig;
   gfx->context = econtext;
@@ -134,12 +132,23 @@ enum renderer_error_e renderer_init(struct renderer_s *renderer,
   return renderer_error_ok;
 }
 
-void renderer_use(struct renderer_s *renderer) {
+bool renderer_use(struct renderer_s *renderer) {
   assert_notnull(renderer);
 
   struct gfx_s *gfx = renderer->gfx;
-  eglMakeCurrent(gfx->display, renderer->surface, renderer->surface,
-                 gfx->context);
+  GLboolean result = eglMakeCurrent(gfx->display, renderer->surface,
+                                    renderer->surface, gfx->context);
+  if (!result)
+    return false;
+
+  if (GL_LOADED)
+    return true;
+
+  if (!gladLoadGLLoader((GLADloadproc)eglGetProcAddress))
+    return false;
+
+  GL_LOADED = true;
+  return true;
 }
 
 void renderer_swap(struct renderer_s *renderer) {
