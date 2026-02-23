@@ -1,10 +1,28 @@
 #pragma once
 
 #include "spaze/array.h"
+#include "spaze/common.h"
 #include "spaze/xdg-shell.h"
 #include <stdbool.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
+
+enum event_kind_e {
+  event_kind_close,
+};
+
+struct event_resize_s {
+  usize_t new_width, new_height;
+};
+
+union event_data_u {
+  struct event_resize_s resize;
+};
+
+struct event_s {
+  enum event_kind_e kind;
+  union event_data_u data;
+};
 
 enum event_loop_error_e {
   event_loop_error_ok,

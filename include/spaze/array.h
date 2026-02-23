@@ -5,8 +5,6 @@
 #define ARRAY_INITIAL 4
 #define ARRAY_GROWTH 2
 
-struct event_s {};
-
 struct array_s {
   void *ptr;
   usize_t length, capacity;
