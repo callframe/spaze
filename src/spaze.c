@@ -3,6 +3,7 @@
 #include "spaze/windowing.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include <wayland-client.h>
 
 #define KiB(n) ((n) * 1024)
 #define MiB(n) (KiB(n) * 1024)

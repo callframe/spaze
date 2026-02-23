@@ -1,6 +1,7 @@
 #include "spaze/gfx.h"
 #include "spaze/common.h"
 #include <fcntl.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -12,11 +13,11 @@
 #define SHM_MODE (S_IRUSR | S_IWUSR)
 
 static void *shared_pool_init_mem(struct shared_pool_s *pool, usize_t size,
-                                  int *fd) {
+                                  int32_t *fd) {
   assert_notnull(pool);
   assert(size > 0);
 
-  int memfd = shm_open(SHM_NAME, SHM_FLAGS, SHM_MODE);
+  int32_t memfd = shm_open(SHM_NAME, SHM_FLAGS, SHM_MODE);
   if (memfd < 0)
     return NULL;
 
@@ -39,7 +40,9 @@ enum shared_pool_error_e shared_pool_init(struct shared_pool_s *pool,
   assert_notnull(shm);
   memset(pool, 0, sizeof(*pool));
 
-  int fd;
+  size = size * gfx_pixel_size;
+
+  int32_t fd;
   void *data = shared_pool_init_mem(pool, size, &fd);
   if (data == NULL)
     return shared_pool_error_memory_failed;
@@ -57,6 +60,35 @@ enum shared_pool_error_e shared_pool_init(struct shared_pool_s *pool,
   pool->capacity = size;
   pool->alive = true;
   return shared_pool_error_ok;
+}
+
+static inline bool shared_pool_can_allocate(struct shared_pool_s *pool,
+                                            usize_t size) {
+  return pool->used + size <= pool->capacity;
+}
+
+static inline void *shared_pool_offset(struct shared_pool_s *pool,
+                                       usize_t offset) {
+  assert_notnull(pool);
+  assert(offset < pool->capacity);
+
+  return (char *)pool->pool_data + offset;
+}
+
+void *shared_pool_allocate(struct shared_pool_s *pool, usize_t size,
+                           usize_t *offset) {
+  assert_notnull(pool);
+  assert_notnull(offset);
+
+  if (!shared_pool_can_allocate(pool, size))
+    return NULL;
+
+  usize_t curr_used = pool->used;
+  void *ptr = shared_pool_offset(pool, curr_used);
+  pool->used += size;
+
+  *offset = curr_used;
+  return ptr;
 }
 
 void shared_pool_deinit(struct shared_pool_s *pool) {
