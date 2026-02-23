@@ -23,7 +23,7 @@ static void handle_events(struct event_loop_s *loop, bool *should_quit) {
   }
 }
 
-static void render_frame(void) { fprintf(stderr, "Rendering frame...\n"); }
+static void render_frame(void) {}
 
 int main() {
   struct event_loop_s evl;

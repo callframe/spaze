@@ -61,6 +61,9 @@ enum gfx_error_e gfx_init(struct gfx_s *gfx, struct event_loop_s *evl) {
   if (!gfx_choose_config(edisplay, &econfig))
     return gfx_error_egl_config_not_found;
 
+  if (!eglBindAPI(EGL_OPENGL_API))
+    return gfx_error_egl_context_creation_failed;
+
   EGLContext econtext =
       eglCreateContext(edisplay, econfig, EGL_NO_CONTEXT, CONTEXT_ATTRS);
   if (econtext == EGL_NO_CONTEXT)
