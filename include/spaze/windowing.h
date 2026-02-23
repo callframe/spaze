@@ -7,6 +7,8 @@
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
+#define BUFFERING_SIZE 2
+
 enum event_kind_e {
   event_kind_close,
   event_kind_resize,
