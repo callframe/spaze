@@ -1,4 +1,5 @@
 #include "spaze/common.h"
+#include "spaze/gfx.h"
 #include "spaze/windowing.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -30,6 +31,12 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  struct shm_pool_s shm_pool;
+  enum shm_pool_error_e shm_err =
+      shm_pool_init(&shm_pool, SHM_POOL_SIZE, evl.shm);
+  if (shm_err != shm_pool_error_ok)
+    panic("failed to create shm pool with: %d\n", shm_err);
+
   struct window_s window;
   enum window_error_e win_err = window_init(&window, &evl);
   if (win_err != window_error_ok)
@@ -42,5 +49,6 @@ int main() {
   }
 
   window_deinit(&window);
+  shm_pool_deinit(&shm_pool);
   event_loop_deinit(&evl);
 }

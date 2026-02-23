@@ -37,6 +37,7 @@ struct event_loop_s {
   struct wl_display *display;
   struct wl_compositor *compositor;
   struct xdg_wm_base *wm_base;
+  struct wl_shm *shm;
   bool alive;
 };
 
