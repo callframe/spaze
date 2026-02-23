@@ -3,6 +3,7 @@
 
 WORK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 DEPS_DIR := $(WORK_DIR)/deps
+INCLUDE_DIR := $(WORK_DIR)/include
 
 DEPS_MK := $(DEPS_DIR)/deps.mk
 include $(DEPS_MK)
@@ -25,7 +26,9 @@ else
 endif
 
 SOURCES := \
-	$(WORK_DIR)/spaze.c
+	$(WORK_DIR)/spaze.c \
+	$(WORK_DIR)/common.c \
+	$(WORK_DIR)/array.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)
@@ -35,7 +38,8 @@ SPAZE := $(WORK_DIR)/spaze
 SPAZE_LD_FLAGS := 
 
 SPAZE_CC_FLAGS := \
-	-I$(MIMALLOC_INCLUDE_DIR)
+	-I$(MIMALLOC_INCLUDE_DIR) \
+	-I$(INCLUDE_DIR)
 
 .PHONY: all
 all: $(SPAZE)
