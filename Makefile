@@ -29,7 +29,8 @@ SOURCES := \
 	$(WORK_DIR)/spaze.c \
 	$(WORK_DIR)/common.c \
 	$(WORK_DIR)/array.c \
-	$(WORK_DIR)/windowing.c
+	$(WORK_DIR)/windowing.c \
+	$(WORK_DIR)/xdg-shell.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DEPENDS := $(SOURCES:.c=.d)

@@ -25,6 +25,14 @@ static void registry_global(void *data, struct wl_registry *registry,
     assert_notnull(compositor);
     loop->compositor = compositor;
   }
+
+  if (!strcmp(interface, xdg_wm_base_interface.name)) {
+    struct xdg_wm_base *wm_base =
+        wl_registry_bind(registry, name, &xdg_wm_base_interface, WL_VERSION);
+
+    assert_notnull(wm_base);
+    loop->wm_base = wm_base;
+  }
 }
 
 static void registry_global_remove(void *data, struct wl_registry *registry,
