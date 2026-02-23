@@ -1,14 +1,14 @@
 #include "spaze/gfx.h"
 #include "mimalloc.h"
 #include "spaze/common.h"
-#include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_wayland.h>
 
 #define APPLICATION_NAME "spaze"
 #define APPLICATION_VERSION VK_MAKE_VERSION(0, 1, 0)
+#define EXTENSIONS_COUNT 2
 
 static const float QUEUE_PRIORITY = 1.0f;
 
@@ -21,13 +21,18 @@ static const struct VkApplicationInfo APPLICATION_INFO = {
     .apiVersion = VK_API_VERSION_1_3,
 };
 
+static const char *const INSTANCE_EXTENSIONS[EXTENSIONS_COUNT] = {
+    VK_KHR_SURFACE_EXTENSION_NAME,
+    VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
+};
+
 static const struct VkInstanceCreateInfo INSTANCE_CREATE_INFO = {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pApplicationInfo = &APPLICATION_INFO,
     .enabledLayerCount = 0,
     .ppEnabledLayerNames = NULL,
-    .enabledExtensionCount = 0,
-    .ppEnabledExtensionNames = NULL,
+    .enabledExtensionCount = EXTENSIONS_COUNT,
+    .ppEnabledExtensionNames = INSTANCE_EXTENSIONS,
 };
 
 static const struct VkDeviceQueueCreateInfo DEVICE_QUEUE_CREATE_INFO = {

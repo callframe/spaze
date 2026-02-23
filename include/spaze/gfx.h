@@ -39,3 +39,7 @@ struct gfx_s {
 
 enum gfx_error_e gfx_init(struct gfx_s *gfx);
 void gfx_deinit(struct gfx_s *gfx);
+
+struct gfx_renderer_s {
+    
+};
