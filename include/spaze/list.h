@@ -15,6 +15,7 @@ struct list_s {
 void list_insert_after(struct list_s *list, struct link_s *link,
                        struct link_s *new_link);
 void list_push(struct list_s *list, struct link_s *link);
+struct link_s *list_pop_front(struct list_s *list);
 void list_remove(struct list_s *list, struct link_s *link);
 
 #define list_for_each_reversed(list, link)                                     \

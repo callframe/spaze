@@ -20,9 +20,18 @@
 #define SHM_NAME "/spaze"
 #define SHM_GROWTH 2
 
+static void buffer_release(void *data, struct wl_buffer *wl_buffer) {
+  (void)wl_buffer;
+  struct shm_block_s *block = (struct shm_block_s *)data;
+  block->busy = false;
+}
+
+static struct wl_buffer_listener WL_BUFFER_LISTENER = {
+    .release = buffer_release,
+};
+
 static enum shm_pool_error_e shm_pool_grow(int32_t fd, usize_t old_capacity,
-                                           void *old_data,
-                                           usize_t new_capacity,
+                                           void *old_data, usize_t new_capacity,
                                            void **new_data) {
   assert_notnull(new_data);
 
@@ -147,6 +156,8 @@ create_buffer:;
   block->stride = stride;
   block->busy = false;
 
+  wl_buffer_add_listener(buffer, &WL_BUFFER_LISTENER, block);
+
   return block;
 }
 
@@ -208,6 +219,28 @@ void swapchain_resize(struct swapchain_s *swapchain, usize_t new_width,
   swapchain->chain = (struct list_s){0};
   swapchain->width = new_width;
   swapchain->height = new_height;
+}
+
+struct shm_block_s *swapchain_acquire(struct swapchain_s *swapchain) {
+  assert_notnull(swapchain);
+  assert(swapchain->alive);
+
+  struct link_s *link = list_pop_front(&swapchain->chain);
+  struct shm_block_s *block = shm_block_get(link);
+  assert_notnull(block);
+
+  while (block->busy)
+    ;
+
+  return block;
+}
+
+void swapchain_reclaim(struct swapchain_s *swapchain,
+                       struct shm_block_s *block) {
+  assert_notnull(swapchain);
+  assert_notnull(block);
+
+  list_push(&swapchain->chain, &block->link);
 }
 
 void swapchain_deinit(struct swapchain_s *swapchain) {

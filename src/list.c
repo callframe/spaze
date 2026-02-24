@@ -32,6 +32,17 @@ void list_push(struct list_s *list, struct link_s *new_link) {
   list_insert_after(list, list->tail, new_link);
 }
 
+struct link_s *list_pop_front(struct list_s *list) {
+  assert_notnull(list);
+
+  if (list->head == NULL)
+    return NULL;
+
+  struct link_s *front = list->head;
+  list_remove(list, front);
+  return front;
+}
+
 void list_remove(struct list_s *list, struct link_s *link) {
   assert_notnull(list);
   assert_notnull(link);
