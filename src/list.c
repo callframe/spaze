@@ -19,7 +19,7 @@ void list_insert_after(struct list_s *list, struct link_s *link,
   link->next = new_link;
 }
 
-void list_append(struct list_s *list, struct link_s *new_link) {
+void list_push(struct list_s *list, struct link_s *new_link) {
   assert_notnull(list);
   assert_notnull(new_link);
 
