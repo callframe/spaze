@@ -1,6 +1,7 @@
 
 #include "spaze/gfx.h"
 #include "spaze/common.h"
+#include "spaze/list.h"
 #include <fcntl.h>
 #include <limits.h>
 #include <mimalloc.h>
@@ -165,4 +166,48 @@ void shm_pool_deinit(struct shm_pool_s *shm_pool) {
   close(shm_pool->fd);
 
   memset(shm_pool, 0, sizeof(*shm_pool));
+}
+
+enum swapchain_error_e swapchain_init(struct swapchain_s *swapchain,
+                                      struct shm_pool_s *shm_pool,
+                                      usize_t width, usize_t height) {
+  assert_notnull(swapchain);
+  assert_notnull(shm_pool);
+  memset(swapchain, 0, sizeof(*swapchain));
+
+  swapchain->shm_pool = shm_pool;
+  swapchain->width = width;
+  swapchain->height = height;
+  swapchain->alive = true;
+
+  return swapchain_error_ok;
+}
+
+void swapchain_resize(struct swapchain_s *swapchain, usize_t new_width,
+                      usize_t new_height) {
+  assert_notnull(swapchain);
+  assert(swapchain->alive);
+
+  if (swapchain->width == new_width && swapchain->height == new_height)
+    return;
+}
+
+void swapchain_deinit(struct swapchain_s *swapchain) {
+  assert_notnull(swapchain);
+
+  if (!swapchain->alive)
+    return;
+
+  struct list_s still_busy = {0};
+  list_for_each(&swapchain->chain, link) {
+    struct swapchain_image_s *image =
+        container_of(struct swapchain_image_s, link, link);
+    if (image->busy)
+      list_push(&still_busy, &image->link);
+    else
+      shm_pool_deallocate(swapchain->shm_pool, image->buffer,
+                          image->width * image->height * GFX_BYTES_PER_PIXEL);
+  }
+
+  swapchain->alive = false;
 }
