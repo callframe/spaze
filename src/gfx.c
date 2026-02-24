@@ -229,8 +229,8 @@ struct shm_block_s *swapchain_acquire(struct swapchain_s *swapchain) {
   struct shm_block_s *block = shm_block_get(link);
   assert_notnull(block);
 
-  while (block->busy)
-    ;
+  if (block->busy)
+    return NULL;
 
   return block;
 }
