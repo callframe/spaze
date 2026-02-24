@@ -83,6 +83,14 @@ static inline usize_t shm_pool_new_capacity(usize_t old_capacity) {
   return old_capacity * SHM_GROWTH;
 }
 
+static inline usize_t shm_block_stride(usize_t width) {
+  return width * GFX_BYTES_PER_PIXEL;
+}
+
+static inline usize_t shm_block_size(usize_t width, usize_t height) {
+  return shm_block_stride(width) * height;
+}
+
 static enum shm_pool_error_e shm_pool_do_grow(struct shm_pool_s *shm_pool,
                                               usize_t new_capacity) {
   assert_notnull(shm_pool);
@@ -102,25 +110,32 @@ static enum shm_pool_error_e shm_pool_do_grow(struct shm_pool_s *shm_pool,
   return shm_pool_error_ok;
 }
 
-struct wl_buffer *shm_pool_allocate(struct shm_pool_s *shm_pool, usize_t size) {
+struct shm_block_s *shm_pool_allocate(struct shm_pool_s *shm_pool,
+                                      usize_t width, usize_t height,
+                                      usize_t stride) {
   assert_notnull(shm_pool);
   assert(shm_pool->alive);
 
+  usize_t req_size = shm_block_size(width, height);
+
   list_for_each_reversed(&shm_pool->free_blocks, link) {
     struct shm_block_s *block = container_of(struct shm_block_s, link, link);
-    if (block->size < size)
+    assert_notnull(block);
+
+    usize_t block_size = shm_block_size(block->width, block->height);
+    if (block_size < req_size)
       continue;
 
     list_remove(&shm_pool->free_blocks, &block->link);
-    return block->buffer;
+    return block;
   }
 
   usize_t offset = shm_pool->pool_used;
   usize_t capacity = shm_pool->pool_capacity;
 
-  if (shm_pool_needs_grow(shm_pool, size)) {
+  if (shm_pool_needs_grow(shm_pool, req_size)) {
     usize_t new_capacity = shm_pool_new_capacity(capacity);
-    while (new_capacity < offset + size)
+    while (new_capacity < offset + req_size)
       new_capacity = shm_pool_new_capacity(new_capacity);
 
     enum shm_pool_error_e err = shm_pool_do_grow(shm_pool, new_capacity);
@@ -129,23 +144,26 @@ struct wl_buffer *shm_pool_allocate(struct shm_pool_s *shm_pool, usize_t size) {
   }
 
   struct wl_buffer *buffer = wl_shm_pool_create_buffer(
-      shm_pool->pool, offset, size, 1, size * GFX_BYTES_PER_PIXEL, GFX_FORMAT);
+      shm_pool->pool, offset, width, height, stride, GFX_FORMAT);
   if (buffer == NULL)
     return NULL;
-
-  shm_pool->pool_used += size;
-
-  return buffer;
-}
-
-void shm_pool_deallocate(struct shm_pool_s *shm_pool, struct wl_buffer *buffer,
-                         usize_t size) {
-  assert_notnull(shm_pool);
-  assert(shm_pool->alive);
+  shm_pool->pool_used += req_size;
 
   struct shm_block_s *block = mi_malloc(sizeof(*block));
   block->buffer = buffer;
-  block->size = size;
+  block->width = width;
+  block->height = height;
+  block->stride = stride;
+  block->busy = false;
+
+  return block;
+}
+
+void shm_pool_deallocate(struct shm_pool_s *shm_pool,
+                         struct shm_block_s *block) {
+  assert_notnull(shm_pool);
+  assert_notnull(block);
+
   list_push(&shm_pool->free_blocks, &block->link);
 }
 
@@ -200,13 +218,16 @@ void swapchain_deinit(struct swapchain_s *swapchain) {
 
   struct list_s still_busy = {0};
   list_for_each(&swapchain->chain, link) {
-    struct swapchain_image_s *image =
-        container_of(struct swapchain_image_s, link, link);
-    if (image->busy)
-      list_push(&still_busy, &image->link);
-    else
-      shm_pool_deallocate(swapchain->shm_pool, image->buffer,
-                          image->width * image->height * GFX_BYTES_PER_PIXEL);
+    struct shm_block_s *block = container_of(struct shm_block_s, link, link);
+    if (block == NULL)
+      continue;
+
+    if (block->busy) {
+      list_push(&still_busy, &block->link);
+      continue;
+    }
+
+    shm_pool_deallocate(swapchain->shm_pool, block);
   }
 
   swapchain->alive = false;
