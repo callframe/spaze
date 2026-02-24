@@ -20,9 +20,10 @@
 #define SHM_NAME "/spaze"
 #define SHM_GROWTH 2
 
-enum shm_pool_error_e shm_pool_grow(int32_t fd, usize_t old_capacity,
-                                    void *old_data, usize_t new_capacity,
-                                    void **new_data) {
+static enum shm_pool_error_e shm_pool_grow(int32_t fd, usize_t old_capacity,
+                                           void *old_data,
+                                           usize_t new_capacity,
+                                           void **new_data) {
   assert_notnull(new_data);
 
   if (ftruncate(fd, new_capacity) < 0)
@@ -83,17 +84,8 @@ static inline usize_t shm_pool_new_capacity(usize_t old_capacity) {
   return old_capacity * SHM_GROWTH;
 }
 
-static inline usize_t shm_block_stride(usize_t width) {
-  return width * GFX_BYTES_PER_PIXEL;
-}
-
-static inline usize_t shm_block_size(usize_t width, usize_t height) {
-  return shm_block_stride(width) * height;
-}
-
 static enum shm_pool_error_e shm_pool_do_grow(struct shm_pool_s *shm_pool,
                                               usize_t new_capacity) {
-  assert_notnull(shm_pool);
   assert(new_capacity > shm_pool->pool_capacity);
 
   void *new_data;
@@ -116,14 +108,12 @@ struct shm_block_s *shm_pool_allocate(struct shm_pool_s *shm_pool,
   assert_notnull(shm_pool);
   assert(shm_pool->alive);
 
-  usize_t req_size = shm_block_size(width, height);
+  usize_t req_size = stride * height;
 
   list_for_each_reversed(&shm_pool->free_blocks, link) {
     struct shm_block_s *block = container_of(struct shm_block_s, link, link);
-    assert_notnull(block);
-
-    usize_t block_size = shm_block_size(block->width, block->height);
-    if (block_size < req_size)
+    if (block->width != width || block->height != height ||
+        block->stride != stride)
       continue;
 
     list_remove(&shm_pool->free_blocks, &block->link);
@@ -131,18 +121,19 @@ struct shm_block_s *shm_pool_allocate(struct shm_pool_s *shm_pool,
   }
 
   usize_t offset = shm_pool->pool_used;
-  usize_t capacity = shm_pool->pool_capacity;
 
-  if (shm_pool_needs_grow(shm_pool, req_size)) {
-    usize_t new_capacity = shm_pool_new_capacity(capacity);
-    while (new_capacity < offset + req_size)
-      new_capacity = shm_pool_new_capacity(new_capacity);
+  if (!shm_pool_needs_grow(shm_pool, req_size))
+    goto create_buffer;
 
-    enum shm_pool_error_e err = shm_pool_do_grow(shm_pool, new_capacity);
-    if (err != shm_pool_error_ok)
-      return NULL;
-  }
+  usize_t new_capacity = shm_pool_new_capacity(shm_pool->pool_capacity);
+  while (new_capacity < offset + req_size)
+    new_capacity = shm_pool_new_capacity(new_capacity);
 
+  enum shm_pool_error_e err = shm_pool_do_grow(shm_pool, new_capacity);
+  if (err != shm_pool_error_ok)
+    return NULL;
+
+create_buffer:;
   struct wl_buffer *buffer = wl_shm_pool_create_buffer(
       shm_pool->pool, offset, width, height, stride, GFX_FORMAT);
   if (buffer == NULL)
@@ -208,6 +199,15 @@ void swapchain_resize(struct swapchain_s *swapchain, usize_t new_width,
 
   if (swapchain->width == new_width && swapchain->height == new_height)
     return;
+
+  list_for_each(&swapchain->chain, link) {
+    struct shm_block_s *block = container_of(struct shm_block_s, link, link);
+    shm_pool_deallocate(swapchain->shm_pool, block);
+  }
+
+  swapchain->chain = (struct list_s){0};
+  swapchain->width = new_width;
+  swapchain->height = new_height;
 }
 
 void swapchain_deinit(struct swapchain_s *swapchain) {
@@ -216,19 +216,11 @@ void swapchain_deinit(struct swapchain_s *swapchain) {
   if (!swapchain->alive)
     return;
 
-  struct list_s still_busy = {0};
   list_for_each(&swapchain->chain, link) {
     struct shm_block_s *block = container_of(struct shm_block_s, link, link);
-    if (block == NULL)
-      continue;
-
-    if (block->busy) {
-      list_push(&still_busy, &block->link);
-      continue;
-    }
-
     shm_pool_deallocate(swapchain->shm_pool, block);
   }
 
+  swapchain->chain = (struct list_s){0};
   swapchain->alive = false;
 }

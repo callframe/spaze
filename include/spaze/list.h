@@ -18,7 +18,12 @@ void list_push(struct list_s *list, struct link_s *link);
 void list_remove(struct list_s *list, struct link_s *link);
 
 #define list_for_each_reversed(list, link)                                     \
-  for (struct link_s *link = (list)->tail; link != NULL; link = link->prev)
-
+  for (struct link_s *link = (list)->tail,                                     \
+                     *link##_next_ = link ? link->prev : NULL;                 \
+       link != NULL;                                                           \
+       link = link##_next_, link##_next_ = link ? link->prev : NULL)
 #define list_for_each(list, link)                                              \
-  for (struct link_s *link = (list)->head; link != NULL; link = link->next)
+  for (struct link_s *link = (list)->head,                                     \
+                     *link##_next_ = link ? link->next : NULL;                 \
+       link != NULL;                                                           \
+       link = link##_next_, link##_next_ = link ? link->next : NULL)
